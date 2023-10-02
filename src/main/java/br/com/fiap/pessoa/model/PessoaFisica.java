@@ -1,20 +1,54 @@
 package br.com.fiap.pessoa.model;
 
+import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@Entity
+@Table(name = "TB_PF", uniqueConstraints = {
+
+        @UniqueConstraint(name = "UK_PF_CPF", columnNames = "NR_CPF")
+
+})
+@DiscriminatorValue("PF")
 public class PessoaFisica extends Pessoa {
+
+    @Column(name = "NR_CPF", nullable = false)
     private String CPF;
+
+
+    @Enumerated(EnumType.STRING)
     private Sexo sexo;
+
+
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(name = "TB_DEPENDENTES",
+            joinColumns = {
+                    @JoinColumn(
+                            name = "PAIS",
+                            referencedColumnName = "ID_PESSOA",
+                            foreignKey = @ForeignKey(name = "FK_PAIS")
+                    )
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(
+                            name = "DEPENDENTE",
+                            referencedColumnName = "ID_PESSOA",
+                            foreignKey = @ForeignKey(name = "FK_DEPENDENTES")
+                    )
+            }
+    )
     private Set<PessoaFisica> filhos = new LinkedHashSet<>(); //Os meus filhos
 
 
     public PessoaFisica() {
     }
+
     public PessoaFisica(Long id, String nome, LocalDate nascimento, String CPF, Sexo sexo, Set<PessoaFisica> filhos) {
-        super(id, nome, nascimento);
+        super( id, nome, nascimento );
         this.CPF = CPF;
         this.sexo = sexo;
         this.filhos = filhos;
@@ -30,9 +64,9 @@ public class PessoaFisica extends Pessoa {
      * @return PessoaFisica
      */
     public PessoaFisica addFilho(PessoaFisica filho) {
-        if (filho.equals(this)) throw new RuntimeException("Eu não posso ser ao mesmo tempo pai e filho");
+        if (filho.equals( this )) throw new RuntimeException( "Eu não posso ser ao mesmo tempo pai e filho" );
         //Adiciono um filho meu
-        this.filhos.add(filho);
+        this.filhos.add( filho );
         return this;
     }
 
@@ -43,7 +77,7 @@ public class PessoaFisica extends Pessoa {
      * @return PessoaFisica
      */
     public PessoaFisica removeFilho(PessoaFisica filho) {
-        this.filhos.remove(filho);
+        this.filhos.remove( filho );
         return this;
     }
 
@@ -72,7 +106,7 @@ public class PessoaFisica extends Pessoa {
      * @return
      */
     public Set<PessoaFisica> getFilhos() {
-        return Collections.unmodifiableSet(filhos);
+        return Collections.unmodifiableSet( filhos );
     }
 
 
